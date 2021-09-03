@@ -1,4 +1,4 @@
-# Daily Logs
+# Weekly Logs
 
 Inspired by Gleb Bahmutov's [What I Have Done](https://glebbahmutov.com/blog/what-i-have-done/)
 
