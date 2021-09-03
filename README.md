@@ -1,9 +1,9 @@
 # Weekly Logs
 
-Inspired by Gleb Bahmutov's [What I Have Done](https://glebbahmutov.com/blog/what-i-have-done/)
+Inspired by Gleb Bahmutov's [What I Have Done](https://glebbahmutov.com/blog/what-i-have-done/).
 
 This repo contains my weekly highlights [2021](./2021) in Markdown format.
-I keep a  log of things I have done for myself (almost as a personal quick memory cache), and for daily agile stand ups at [Workflowy](https://workflowy.com/s/work/p0Chzm5hUMTbc9sX)
+I keep a  log of things I have done for myself (almost as a personal quick memory cache), and for daily agile stand ups at [Workflowy](https://workflowy.com/s/work/p0Chzm5hUMTbc9sX).
 
 ## Tags
 
