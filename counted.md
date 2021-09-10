@@ -1,7 +1,7 @@
 # Items counted
 label | blog | support | feature | testing | hiring | process | learning | presentation | documentation
 ---|---|---|---|---|---|---|---|---|---
-09-September-2021 | 1 | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 1
-total | 1 | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 1
-total % | 25.00 | 0.00 | 0.00 | 0.00 | 0.00 | 25.00 | 25.00 | 0.00 | 25.00
-average | 1 | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 1
+09-September-2021 | 2 | 0 | 0 | 0 | 0 | 2 | 4 | 0 | 1
+total | 2 | 0 | 0 | 0 | 0 | 2 | 4 | 0 | 1
+total % | 22.22 | 0.00 | 0.00 | 0.00 | 0.00 | 22.22 | 44.44 | 0.00 | 11.11
+average | 2 | 0 | 0 | 0 | 0 | 2 | 4 | 0 | 1
