@@ -14,6 +14,7 @@ I keep a  log of things I have done for myself (almost as a personal quick memor
 - `@hiring` working to hire someone
 - `@process` are utility tasks that are internal
 - `@learning` is when I was learning something new
+- `@poc` is when working on a proof of conecpt
 - `@presentation` preparing for a public presentation, working on slides, sending a proposal
 - `@documentation` is improving internal documents
 

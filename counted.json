@@ -3,8 +3,9 @@
     "label": "09-September-2021",
     "blog": 2,
     "documentation": 1,
-    "learning": 4,
-    "process": 2
+    "learning": 3,
+    "poc": 4,
+    "process": 4
   },
   {
     "label": "total",
@@ -13,22 +14,24 @@
     "feature": 0,
     "testing": 0,
     "hiring": 0,
-    "process": 2,
-    "learning": 4,
+    "process": 4,
+    "learning": 3,
+    "poc": 4,
     "presentation": 0,
     "documentation": 1
   },
   {
     "label": "total %",
-    "blog": "22.22",
+    "blog": "14.29",
     "support": "0.00",
     "feature": "0.00",
     "testing": "0.00",
     "hiring": "0.00",
-    "process": "22.22",
-    "learning": "44.44",
+    "process": "28.57",
+    "learning": "21.43",
+    "poc": "28.57",
     "presentation": "0.00",
-    "documentation": "11.11"
+    "documentation": "7.14"
   },
   {
     "label": "average",
@@ -37,8 +40,9 @@
     "feature": 0,
     "testing": 0,
     "hiring": 0,
-    "process": 2,
-    "learning": 4,
+    "process": 4,
+    "learning": 3,
+    "poc": 4,
     "presentation": 0,
     "documentation": 1
   }
