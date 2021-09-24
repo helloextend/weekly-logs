@@ -15,7 +15,7 @@ function countMonth(monthLabel) {
   const lines = file.split(os.EOL).filter(isTask).filter(hasTag)
 
   const lineToTagged = (line) => {
-    const reg = /.* @(support|feature|process|documentation|presentation|learning|poc|hiring|blog|testing)$/
+    const reg = /.* @(feature|process|learning|poc|blog|testing|devops)$/
     const matches = reg.exec(line)
     if (!matches) {
       throw new Error(`Invalid line "${line}"`)
@@ -55,16 +55,13 @@ const monthLabels = [
 ]
 
 const tags = [
-  'blog',
-  'support',
   'feature',
-  'testing',
-  'hiring',
   'process',
   'learning',
   'poc',
-  'presentation',
-  'documentation',
+  'blog',
+  'testing',
+  'devops'
 ]
 
 const calculateTotals = (counts) => {

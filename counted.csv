@@ -1,5 +1,5 @@
-label,blog,support,feature,testing,hiring,process,learning,poc,presentation,documentation
-09-September-2021,2,0,0,0,0,4,3,4,0,1
-total,2,0,0,0,0,4,3,4,0,1
-total %,14.29,0.00,0.00,0.00,0.00,28.57,21.43,28.57,0.00,7.14
-average,2,0,0,0,0,4,3,4,0,1
+label,feature,process,learning,poc,blog,testing,devops
+09-September-2021,0,7,3,5,4,1,1
+total,0,7,3,5,4,1,1
+total %,0.00,33.33,14.29,23.81,19.05,4.76,4.76
+average,0,7,3,5,4,1,1

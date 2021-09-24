@@ -7,16 +7,13 @@ I keep a  log of things I have done for myself (almost as a personal quick memor
 
 ## Tags
 
-- `@blog` writing a blog post for UI Testing Best Practices] or [dev.to](https://dev.to/muratkeremozcan)
-- `@support` supporting our team members
 - `@feature` is the new code or fixing bugs or writing tests or documenting new feature
-- `@testing` is collaborating with testers or mentoring
-- `@hiring` working to hire someone
 - `@process` are utility tasks that are internal
 - `@learning` is when I was learning something new
 - `@poc` is when working on a proof of conecpt
-- `@presentation` preparing for a public presentation, working on slides, sending a proposal
-- `@documentation` is improving internal documents
+- `@blog` writing a blog post for UI Testing Best Practices] or [dev.to](https://dev.to/muratkeremozcan)
+- `@testing` is collaborating with testers, mentoring, testing
+- `@devops` specifically CI focused work
 
 The dates follow YYYY-MM-DD format, for example `2020-05-27`.
 
