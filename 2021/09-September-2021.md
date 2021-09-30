@@ -24,11 +24,15 @@
 
 ## Week of 2021-09-17
 
-- [Test Discipline Jira Board](https://helloextend.atlassian.net/jira/software/c/projects/TESTING/boards/113/roadmap?selectedIssue=TESTING-2) @process
-- [Recommended learning roadmap for the test discipline](https://helloextend.atlassian.net/wiki/spaces/ENG/pages/1264156700/Test+Engineering+Guild) @process
-- [SDLC BOM](https://docs.google.com/spreadsheets/d/1lDVnaT-6usYW8FmW2tP6w8Mp_QAgDvmciXWTCJuO2Q8/edit#gid=0) @process
+- [Recommended learning road map for the test discipline](https://helloextend.atlassian.net/wiki/spaces/ENG/pages/1264156700/Test+Engineering+Guild) @process
 - [e2e API testing](https://dev.to/muratkeremozcan/api-testing-event-driven-systems-7fe) @blog
 - [no more page objects](https://dev.to/muratkeremozcan/functional-test-patterns-with-cypress-27ed) @blog
 - [multi-stage-caching](https://github.com/muratkeremozcan/multi-stage-caching)  @poc
-- [Client CI improvement:](https://github.com/helloextend/client/pull/2285) 30% / ~11mins @devops
+- [Client CI improvement:](https://github.com/helloextend/client/pull/2285) 30% improvement / ~11mins @devops
 - [Cypress roll-out](https://extend-workspace.slack.com/archives/CEZTP0H70/p1632512922149700) @testing
+
+## Week of 2021-09-24
+
+- [Test Discipline Jira Board](https://helloextend.atlassian.net/jira/software/c/projects/TESTING/boards/113/roadmap?selectedIssue=TESTING-2) @process
+- [SDLC workshop in Austin](https://docs.google.com/spreadsheets/d/1lDVnaT-6usYW8FmW2tP6w8Mp_QAgDvmciXWTCJuO2Q8/edit#gid=0) @process
+- [TESTING-14 Cypress initial](https://github.com/helloextend/client/pull/2309) PR merged to Client repo @testing

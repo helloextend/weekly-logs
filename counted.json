@@ -6,7 +6,7 @@
     "learning": 3,
     "poc": 5,
     "process": 7,
-    "testing": 1
+    "testing": 2
   },
   {
     "label": "total",
@@ -15,18 +15,18 @@
     "learning": 3,
     "poc": 5,
     "blog": 4,
-    "testing": 1,
+    "testing": 2,
     "devops": 1
   },
   {
     "label": "total %",
     "feature": "0.00",
-    "process": "33.33",
-    "learning": "14.29",
-    "poc": "23.81",
-    "blog": "19.05",
-    "testing": "4.76",
-    "devops": "4.76"
+    "process": "31.82",
+    "learning": "13.64",
+    "poc": "22.73",
+    "blog": "18.18",
+    "testing": "9.09",
+    "devops": "4.55"
   },
   {
     "label": "average",
@@ -35,7 +35,7 @@
     "learning": 3,
     "poc": 5,
     "blog": 4,
-    "testing": 1,
+    "testing": 2,
     "devops": 1
   }
 ]
