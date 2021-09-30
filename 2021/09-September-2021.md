@@ -35,4 +35,4 @@
 
 - [Test Discipline Jira Board](https://helloextend.atlassian.net/jira/software/c/projects/TESTING/boards/113/roadmap?selectedIssue=TESTING-2) @process
 - [SDLC workshop in Austin](https://docs.google.com/spreadsheets/d/1lDVnaT-6usYW8FmW2tP6w8Mp_QAgDvmciXWTCJuO2Q8/edit#gid=0) @process
-- [TESTING-14 Cypress initial](https://github.com/helloextend/client/pull/2309) PR merged to Client repo @testing
+- PR: [TESTING-14 Cypress initial](https://github.com/helloextend/client/pull/2309)  merged to Client repo @testing
