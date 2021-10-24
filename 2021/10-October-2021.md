@@ -12,3 +12,8 @@
 
 - [Cypress decision for api e2e testing node-core](https://github.com/helloextend/node-core/pull/5879) @testing
 - Cypress service agreement @process
+
+## Week of 2021-10-17
+
+- [A unified concise approach to selective testing in CI and local machines](https://dev.to/muratkeremozcan/the-32-ways-of-selective-testing-with-cypress-a-unified-concise-approach-to-selective-testing-in-ci-and-local-machines-1c19) @devops
+- Jira, Github, Slack integrations with Cypress @testing
