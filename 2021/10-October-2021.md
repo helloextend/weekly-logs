@@ -17,3 +17,7 @@
 
 - [A unified concise approach to selective testing in CI and local machines](https://dev.to/muratkeremozcan/the-32-ways-of-selective-testing-with-cypress-a-unified-concise-approach-to-selective-testing-in-ci-and-local-machines-1c19) @devops
 - Jira, Github, Slack integrations with Cypress @testing
+
+## Week of 2021-10-24
+
+- Finalized setting up the e2e framework [for all 5 applications and 19 services](https://dashboard.cypress.io/organizations/8304bc37-fa4d-4d3e-b11c-d8cc881b1591/projects) @testing
