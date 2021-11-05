@@ -21,3 +21,9 @@
 ## Week of 2021-10-24
 
 - Finalized setting up the e2e framework [for all 5 applications and 19 services](https://dashboard.cypress.io/organizations/8304bc37-fa4d-4d3e-b11c-d8cc881b1591/projects) @testing
+
+## Week of 2021-11-31
+
+- [cypress-data-session](https://github.com/helloextend/node-core/pull/6159) for users and token @testing
+- [SDET e2e challenge solution](https://github.com/helloextend/e2e-challenge-murat) @testing
+- [Cypress rollout stakeholder meeting](https://mail.google.com/mail/u/0/#imp/FMfcgzGlkjdkBlfMGCwcDgjpDvNhRxWL?projector=1) @process
