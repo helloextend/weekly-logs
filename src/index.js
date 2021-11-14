@@ -52,6 +52,8 @@ function countMonth(monthLabel) {
 
 const monthLabels = [
   '09-September-2021',
+  '10-October-2021',
+  '11-Nov-2021'
 ]
 
 const tags = [

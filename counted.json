@@ -9,33 +9,45 @@
     "testing": 2
   },
   {
+    "label": "10-October-2021",
+    "devops": 3,
+    "learning": 1,
+    "process": 4,
+    "testing": 6
+  },
+  {
+    "label": "11-Nov-2021",
+    "learning": 1,
+    "testing": 1
+  },
+  {
     "label": "total",
     "feature": 0,
-    "process": 7,
-    "learning": 3,
+    "process": 11,
+    "learning": 5,
     "poc": 5,
     "blog": 4,
-    "testing": 2,
-    "devops": 1
+    "testing": 9,
+    "devops": 4
   },
   {
     "label": "total %",
     "feature": "0.00",
-    "process": "31.82",
-    "learning": "13.64",
-    "poc": "22.73",
-    "blog": "18.18",
-    "testing": "9.09",
-    "devops": "4.55"
+    "process": "28.95",
+    "learning": "13.16",
+    "poc": "13.16",
+    "blog": "10.53",
+    "testing": "23.68",
+    "devops": "10.53"
   },
   {
     "label": "average",
     "feature": 0,
-    "process": 7,
-    "learning": 3,
-    "poc": 5,
-    "blog": 4,
-    "testing": 2,
+    "process": 4,
+    "learning": 2,
+    "poc": 2,
+    "blog": 1,
+    "testing": 3,
     "devops": 1
   }
 ]
