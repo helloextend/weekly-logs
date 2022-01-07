@@ -1,8 +1,9 @@
-label,feature,process,learning,poc,blog,testing,devops
-09-September-2021,0,7,3,5,4,2,1
-10-October-2021,0,4,1,0,0,6,3
-11-Nov-2021,0,2,3,1,0,12,1
-12-Dec-2021,0,2,1,1,1,20,1
-total,0,15,8,7,5,40,6
-total %,0.00,18.52,9.88,8.64,6.17,49.38,7.41
-average,0,4,2,2,1,10,2
+label,process,learning,poc,blog,testing,devops
+09-September-2021,7,3,5,4,2,1
+10-October-2021,4,1,0,0,6,3
+11-Nov-2021,2,3,1,0,12,1
+12-Dec-2021,2,1,1,1,20,1
+01-Jan-2022,0,1,0,0,4,0
+total,15,9,7,5,44,6
+total %,17.44,10.47,8.14,5.81,51.16,6.98
+average,3,2,1,1,9,1

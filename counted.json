@@ -33,33 +33,35 @@
     "testing": 20
   },
   {
+    "label": "01-Jan-2022",
+    "learning": 1,
+    "testing": 4
+  },
+  {
     "label": "total",
-    "feature": 0,
     "process": 15,
-    "learning": 8,
+    "learning": 9,
     "poc": 7,
     "blog": 5,
-    "testing": 40,
+    "testing": 44,
     "devops": 6
   },
   {
     "label": "total %",
-    "feature": "0.00",
-    "process": "18.52",
-    "learning": "9.88",
-    "poc": "8.64",
-    "blog": "6.17",
-    "testing": "49.38",
-    "devops": "7.41"
+    "process": "17.44",
+    "learning": "10.47",
+    "poc": "8.14",
+    "blog": "5.81",
+    "testing": "51.16",
+    "devops": "6.98"
   },
   {
     "label": "average",
-    "feature": 0,
-    "process": 4,
+    "process": 3,
     "learning": 2,
-    "poc": 2,
+    "poc": 1,
     "blog": 1,
-    "testing": 10,
-    "devops": 2
+    "testing": 9,
+    "devops": 1
   }
 ]

@@ -54,18 +54,11 @@ const monthLabels = [
   '09-September-2021',
   '10-October-2021',
   '11-Nov-2021',
-  '12-Dec-2021'
+  '12-Dec-2021',
+  '01-Jan-2022',
 ]
 
-const tags = [
-  'feature',
-  'process',
-  'learning',
-  'poc',
-  'blog',
-  'testing',
-  'devops'
-]
+const tags = ['process', 'learning', 'poc', 'blog', 'testing', 'devops']
 
 const calculateTotals = (counts) => {
   const totals = {
