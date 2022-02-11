@@ -43,7 +43,7 @@
   },
   {
     "label": "02-Feb-2022",
-    "testing": 9
+    "testing": 10
   },
   {
     "label": "total",
@@ -51,17 +51,17 @@
     "learning": 11,
     "poc": 8,
     "blog": 14,
-    "testing": 81,
+    "testing": 82,
     "devops": 6
   },
   {
     "label": "total %",
-    "process": "11.76",
-    "learning": "8.09",
-    "poc": "5.88",
-    "blog": "10.29",
-    "testing": "59.56",
-    "devops": "4.41"
+    "process": "11.68",
+    "learning": "8.03",
+    "poc": "5.84",
+    "blog": "10.22",
+    "testing": "59.85",
+    "devops": "4.38"
   },
   {
     "label": "average",
