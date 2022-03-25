@@ -53,7 +53,7 @@
     "blog": 1,
     "devops": 1,
     "process": 1,
-    "testing": 17
+    "testing": 23
   },
   {
     "label": "total",
@@ -61,17 +61,17 @@
     "learning": 11,
     "poc": 9,
     "blog": 15,
-    "testing": 114,
+    "testing": 120,
     "devops": 9
   },
   {
     "label": "total %",
-    "process": "10.73",
-    "learning": "6.21",
-    "poc": "5.08",
-    "blog": "8.47",
-    "testing": "64.41",
-    "devops": "5.08"
+    "process": "10.38",
+    "learning": "6.01",
+    "poc": "4.92",
+    "blog": "8.20",
+    "testing": "65.57",
+    "devops": "4.92"
   },
   {
     "label": "average",
@@ -79,7 +79,7 @@
     "learning": 2,
     "poc": 1,
     "blog": 2,
-    "testing": 16,
+    "testing": 17,
     "devops": 1
   }
 ]
