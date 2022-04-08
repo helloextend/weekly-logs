@@ -56,6 +56,9 @@
     "testing": 24
   },
   {
+    "label": "04-Apr-2022"
+  },
+  {
     "label": "total",
     "process": 19,
     "learning": 11,
@@ -75,11 +78,11 @@
   },
   {
     "label": "average",
-    "process": 3,
-    "learning": 2,
+    "process": 2,
+    "learning": 1,
     "poc": 1,
     "blog": 2,
-    "testing": 17,
+    "testing": 15,
     "devops": 1
   }
 ]
