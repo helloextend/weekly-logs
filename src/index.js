@@ -61,6 +61,7 @@ const monthLabels = [
   '04-Apr-2022',
   '05-May-2022',
   '06-June-2022',
+  '07-July-2022',
 ]
 
 const tags = ['process', 'learning', 'poc', 'blog', 'testing', 'devops']
