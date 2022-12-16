@@ -99,39 +99,41 @@
   },
   {
     "label": "11-Nov-2022",
-    "devops": 4,
-    "learning": 3,
-    "testing": 2
+    "blog": 1,
+    "devops": 5,
+    "learning": 5,
+    "testing": 4
   },
   {
     "label": "12-Dec-2022",
+    "learning": 2,
     "testing": 1
   },
   {
     "label": "total",
     "process": 21,
-    "learning": 21,
+    "learning": 25,
     "poc": 9,
-    "blog": 34,
-    "testing": 168,
-    "devops": 23
+    "blog": 35,
+    "testing": 170,
+    "devops": 24
   },
   {
     "label": "total %",
-    "process": "7.61",
-    "learning": "7.61",
-    "poc": "3.26",
+    "process": "7.39",
+    "learning": "8.80",
+    "poc": "3.17",
     "blog": "12.32",
-    "testing": "60.87",
-    "devops": "8.33"
+    "testing": "59.86",
+    "devops": "8.45"
   },
   {
     "label": "average",
     "process": 1,
-    "learning": 1,
+    "learning": 2,
     "poc": 1,
     "blog": 2,
     "testing": 11,
-    "devops": 1
+    "devops": 2
   }
 ]
