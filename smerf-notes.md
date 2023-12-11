@@ -82,6 +82,51 @@ function createJSONResponse(data, statusCode = 200) {
 }
 ```
 
+#### Interacting with the headers
+
+```ts
+import { createJSONResponse } from '@helloextend/api-utils'
+import { createHttpHandler } from '@helloextend/smerf'
+
+const handler = createHttpHandler(async (req, _ctx) => {
+  const userAgent = req.headers.get('User-Agent')
+  const text = await req.text()
+
+  return createJSONResponse(
+    {
+      userAgent,
+      text,
+    },
+    201,
+    {
+      'Content-Type': 'application/json',
+    },
+  )
+})
+
+export const POST = handler
+```
+
+Smerf converts any uncaught exception to a 500 error.
+
+```ts
+// ./src/handlers/http/index.ts
+const handler = createHttpHandler(async (req, _ctx) => {
+  throw new Error('test error')
+})
+```
+
+If we set the status code to 400/500, we can return an error with the customized status.
+
+```ts
+// ./src/handlers/http/index.ts
+const handler = createHttpHandler(async (req, _ctx) => {
+  return createJSONResponse('not found', 404)
+})
+```
+
+
+
 ### Middleware
 
 TODO: compare with how middleware was traditionally done with middy
@@ -149,3 +194,4 @@ Like Next.js.
 When the smerf build command runs, a `manifest.json` file is created, which powers cdk. 
 
 ![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/cy4xbil3vzsrwoak9e4u.png)
+
