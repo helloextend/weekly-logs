@@ -2,6 +2,8 @@
 
 ### Handlers
 
+
+
 ```ts
 // ./src/handlers/http/index.ts
 
@@ -18,41 +20,30 @@ export const POST = createHttpHandler(async (req, _ctx) =>
 )
 ```
 
-The `createHttpHandler` abstraction is possibly looking like this. 
-TODO: verify this assumption
+`createHttpHandler` is a utility function to create an HTTP request handler. That function  takes a request and context object, and returns a response. It only exists to help you with the typing.
 
 ```ts
-/**
- * createHttpHandler - A utility function to create an HTTP request handler.
- * @param {Function} handlerFunction - A function that takes a request and context object, and returns a response.
- * @returns {Function} A function that can be used as an HTTP request handler.
- */
-function createHttpHandler(handlerFunction) {
-  return async (req, res) => {
-    try {
-      // Extract necessary information from the request object
-      // Context can be built based on the needs (e.g., authentication, logging)
-      const context = {}
+import type { Request } from 'node-fetch'
+import type { Context } from '@helloextend/smerf'
+const handler = async (req: Request, _ctx: Context) => {..})
 
-      // Execute the handler function with the request and context
-      const response = await handlerFunction(req, context)
+// becomes 
 
-      // Send the response back to the client
-      res.statusCode = response.statusCode || 200
-      res.setHeader('Content-Type', 'application/json')
-      res.end(JSON.stringify(response.body))
-    } catch (error) {
-      // Handle any errors that occur during the request handling
-      res.statusCode = 500
-      res.setHeader('Content-Type', 'application/json')
-      res.end(JSON.stringify({ error: 'Internal Server Error' }))
-    }
-  }
-}
+const handler = createHttpHandler(async (req, _ctx) => {..})
 ```
 
-The `createJSONResponse` abstraction is possibly looking like this.
-TODO: verify this assumption
+`createJSONResponse` similarly helps with typing, as well as data serialization.
+
+```ts
+import type { Request } from 'node-fetch'
+// ..
+return new Response(JSON.stringify({ userAgent, text }), {status: 200})
+
+// becomes
+return createJSONResponse({userAgent, text}, 200)
+```
+
+
 
 ```ts
 /**
@@ -61,7 +52,7 @@ TODO: verify this assumption
  * @param {number} statusCode - Optional HTTP status code, defaults to 200.
  * @returns {Object} An object representing the HTTP response.
  */
-function createJSONResponse(data, statusCode = 200) {
+function createJSONResponse(data, statusCode?, headers? ) {
   let responseBody
 
   // Check if the data is already a string (e.g., a message), or an object that needs to be stringified
@@ -105,6 +96,39 @@ const handler = createHttpHandler(async (req, _ctx) => {
 })
 
 export const POST = handler
+```
+
+A test for the above:
+
+```ts
+// src/handlers/http/index.test.ts
+import { POST } from './index'
+import { makeTestContext, makeTestRequest } from '@helloextend/smerf'
+
+describe('POST handler', () => {
+  it('should return a JSON response', async () => {
+    const response = await POST(
+      // new Request('http:localhost:3000/', {
+      //   method: 'POST',
+      //   headers: { 'User-Agent': 'test' },
+      //   body: 'Smerf Test',
+      // }),
+      makeTestRequest('http:localhost:3000/', {
+        method: 'POST',
+        headers: { 'User-Agent': 'test' },
+        body: 'Smerf Test',
+      }),
+      // new Context(),
+      makeTestContext(),
+    )
+
+    expect(response.status).toBe(201)
+    expect(await response.json()).toEqual({
+      userAgent: 'test',
+      text: 'Smerf Test',
+    })
+  })
+})
 ```
 
 Smerf converts any uncaught exception to a 500 error.
