@@ -153,8 +153,6 @@ const handler = createHttpHandler(async (req, _ctx) => {
 
 ### Middleware
 
-TODO: compare with how middleware was traditionally done with middy
-
 Middleware functions are commonly used to process requests and responses, often performing tasks like: 
 
 * logging
@@ -163,12 +161,16 @@ Middleware functions are commonly used to process requests and responses, often 
 
 They solve the challenge of attaching functionality before and after a request/response.
 
+#### Middleware pattern
+
 Middleware ordering: 
 
 * On the way in to the handler : middleware get executed in order : 1, 2, 3
 * On the way out of the handler: middleware get executed in reverse: 3, 2, 1
 
 ![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/jfqayg3srnbv2w98ocpc.png)
+
+#### Attaching middleware
 
 ```ts
 // ./src/handlers/http/index.ts
@@ -200,6 +202,116 @@ const middleware = async (
 // attach the middleware to the handler
 export const GET = smerf.use(middleware).handler(handler)
 ```
+
+#### Middleware ordering, Signature/helpers
+
+`createHttpMiddleware` is a helper with types, similar to previous helpers.
+
+```ts
+// ./src/handlers/http/index.ts
+
+import { createJSONResponse } from '@helloextend/api-utils'
+import type { Context } from '@helloextend/smerf'
+import smerf, {
+  createHttpHandler,
+  createHttpMiddleware,
+} from '@helloextend/smerf'
+
+const handler = createHttpHandler((_req, _ctx) => {
+  console.log('HANDLER')
+  return createJSONResponse('Hello Smerf')
+})
+
+const middlewareA = async (
+  _req: Request,
+  _ctx: Context,
+  next: () => Promise<Response>,
+) => {
+  console.log('MIDDLEWARE A before')
+  const response = await next()
+  console.log('MIDDLEWARE A after')
+  return response
+}
+
+const middlewareB = createHttpMiddleware(async (_req, _ctx, next) => {
+  console.log('MIDDLEWARE B before')
+  const response = await next()
+  console.log('MIDDLEWARE B after')
+  return response
+})
+
+// attach the middleware to the handler
+export const GET = smerf.use([middlewareA, middlewareB]).handler(handler)
+// same thing
+// export const GET = smerf.use(middlewareA).use(middlewareB).handler(handler)
+
+```
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/7zygt7pkd2zf2lbi2hxy.png)
+
+If we flip the order of the middleware, we can test the outcome. Here middlewareA is blocking, but both B and A enter the middleware, and B even executes on the way out, the header even gets added.
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/myissh6nhnxrtf63dol2.png)
+
+```ts
+// ./src/handlers/http/index.ts
+
+import { createJSONResponse } from '@helloextend/api-utils'
+import smerf, {
+  createHttpHandler,
+  createHttpMiddleware,
+} from '@helloextend/smerf'
+
+const handler = createHttpHandler((_req, _ctx) => {
+  console.log('HANDLER')
+  return createJSONResponse('Hello Smerf')
+})
+
+const middlewareA = createHttpMiddleware(async (req, _ctx, next) => {
+  console.log('MIDDLEWARE A before')
+  if (req.headers.get('AUTHORIZATION') !== 'Bearer 123') {
+    return createJSONResponse({ message: 'Unauthorized' }, 401)
+  }
+  const response = await next()
+  console.log('MIDDLEWARE A after')
+  return response
+})
+
+const middlewareB = createHttpMiddleware(async (_req, _ctx, next) => {
+  console.log('MIDDLEWARE B before')
+  const response = await next()
+  console.log('MIDDLEWARE B after')
+  response.headers.set('x-powered-by', 'smerf') // still gets executed
+  return response
+})
+
+// attach the middleware to the handler
+export const GET = smerf.use([middlewareB, middlewareA]).handler(handler)
+```
+
+
+
+
+
+#### Writing middleware
+
+
+
+#### Context API
+
+
+
+#### Complex iddleware
+
+
+
+#### Reusable middleware
+
+
+
+#### Testing
+
+
 
 ### Router
 
