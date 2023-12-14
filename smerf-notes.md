@@ -2,8 +2,6 @@
 
 ### Handlers
 
-
-
 ```ts
 // ./src/handlers/http/index.ts
 
@@ -172,6 +170,8 @@ Middleware ordering:
 
 #### Attaching middleware
 
+>  `next`: A function, often referred to as the "next middleware function" in the stack. Calling `next()` within a middleware function will pass control to the next middleware function in line. If not called, the request-response cycle will halt in the current middleware.
+
 ```ts
 // ./src/handlers/http/index.ts
 
@@ -289,27 +289,342 @@ const middlewareB = createHttpMiddleware(async (_req, _ctx, next) => {
 export const GET = smerf.use([middlewareB, middlewareA]).handler(handler)
 ```
 
+Test with rest client extension:
 
+```bash
+# ./test.rest
 
+@baseUrl = http://localhost:3000
 
-
-#### Writing middleware
+GET {{baseUrl}}
+```
 
 
 
 #### Context API
 
+Example of setting the context:
 
 
-#### Complex iddleware
 
+```ts
+// ./src/handlers/http/index.ts
 
+import { createJSONResponse } from '@helloextend/api-utils'
+import smerf, {
+  createHttpHandler,
+  createHttpMiddleware,
+} from '@helloextend/smerf'
+import type { Context } from '@helloextend/smerf'
+
+const getCtxKey = (ctx: Context, key: string) => ctx.get(key)
+
+const handler = createHttpHandler(async (_req, ctx) => {
+  console.log('HANDLER')
+  // (2) retrieve the information from the context
+  const userId = await getCtxKey(ctx, 'userId')
+  return createJSONResponse(`Hello ${userId}`)
+})
+
+const authMiddleware = createHttpMiddleware(async (req, ctx, next) => {
+  console.log('MIDDLEWARE A before')
+  const authHeader = req.headers.get('AUTHORIZATION')
+
+  if (authHeader?.startsWith('Bearer') !== true) {
+    return createJSONResponse({ message: 'Unauthorized' }, 401)
+  }
+  // (1) set the context with the user information
+  const userId = authHeader.split(' ')[1] // Bearer 123 -> 123
+  ctx.set('userId', userId)
+
+  const res = await next()
+  res.headers.set('X-User-Id', userId)
+  console.log('MIDDLEWARE A after')
+  return res
+})
+
+const middlewareB = createHttpMiddleware(async (_req, _ctx, next) => {
+  console.log('MIDDLEWARE B before')
+  const res = await next()
+  console.log('MIDDLEWARE B after')
+  res.headers.set('X-Powered-By', 'smerf') // still gets executed
+  return res
+})
+
+export const GET = smerf.use([middlewareB, authMiddleware]).handler(handler)
+```
+
+Test with rest client extension:
+
+```bash
+# ./test.rest
+
+@baseUrl = http://localhost:3000
+
+GET {{baseUrl}}
+AUTHORIZATION: Bearer 123
+```
+
+Mind that we cannot set the same context multiple times. It will throw a 500 error. 
+If we must do that, then use `allowOverride: true`
+
+```ts
+
+ctx.set('userId', userId)
+ctx.set('userId', userId, {allowOverride: true})
+```
+
+#### Complex middleware
+
+Let's say in case of error, we want to return a custom error, but we still want to set `X-Powered-By` headers. We create a new middleware `errorHandlerMiddleware`.
+
+```ts
+// ./src/handlers/http/index.ts
+import { createJSONResponse } from '@helloextend/api-utils'
+import smerf, {
+  createHttpHandler,
+  createHttpMiddleware,
+} from '@helloextend/smerf'
+
+const handler = createHttpHandler(async (_req, _ctx) => {
+  console.log('HANDLER')
+  throw new Error('Test')
+})
+
+const errorHandlerMiddleware = createHttpMiddleware(async (req, ctx, next) => {
+  console.log('MIDDLEWARE B before')
+  try {
+    const res = await next()
+    console.log('MIDDLEWARE B after')
+    return res
+  } catch (err: any) {
+    console.log('MIDDLEWARE B error')
+    return createJSONResponse({ message: 'some error' }, 409)
+  }
+})
+
+const authMiddleware = createHttpMiddleware(async (req, ctx, next) => {
+  console.log('MIDDLEWARE C before')
+  const authHeader = req.headers.get('AUTHORIZATION')
+
+  if (authHeader?.startsWith('Bearer') !== true) {
+    return createJSONResponse({ message: 'Unauthorized' }, 401)
+  }
+  const userId = authHeader.split(' ')[1]
+  ctx.set('userId', userId)
+
+  const res = await next()
+  res.headers.set('X-User-Id', userId)
+  console.log('MIDDLEWARE C after')
+  return res
+})
+
+const poweredByMiddleware = createHttpMiddleware(async (_req, _ctx, next) => {
+  console.log('MIDDLEWARE A before')
+  const res = await next()
+  console.log('MIDDLEWARE A after')
+  res.headers.set('X-Powered-By', 'smerf')
+  return res
+})
+
+export const GET = smerf
+  .use([poweredByMiddleware, errorHandlerMiddleware, authMiddleware])
+  .handler(handler)
+
+```
+
+We get our custom message, status, and the header is still set by middleware A.
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/hqi1kqxi45qy1r4z1eez.png)
+
+```bash
+HTTP/1.1 409 Conflict
+content-type: application/json
+x-powered-by: smerf
+content-length: 24
+Date: Thu, 14 Dec 2023 13:36:53 GMT
+Connection: close
+
+{
+  "message": "some error"
+}
+```
 
 #### Reusable middleware
 
+Let's say we want our `poweredByMiddleware` to make `x-powered-by` "Smerf" or "Extend". We just use a function that returns a function (currying).
 
+```ts
+// ./src/handlers/http/index.ts
+
+import { createJSONResponse } from '@helloextend/api-utils'
+import type { Context } from '@helloextend/smerf'
+import smerf, {
+  createHttpHandler,
+  createHttpMiddleware,
+} from '@helloextend/smerf'
+
+export const getCtxKey = (ctx: Context, key: string) => ctx.get(key)
+
+const handler = createHttpHandler(async (_req, ctx) => {
+  console.log('HANDLER')
+  const userId = await getCtxKey(ctx, 'userId')
+  return createJSONResponse(`Hello ${userId}`)
+})
+
+export const poweredByMiddleware = (poweredBy = 'Smerf') =>
+  createHttpMiddleware(async (_req, _ctx, next) => {
+    console.log('MIDDLEWARE A before')
+    const res = await next()
+    console.log('MIDDLEWARE A after')
+    res.headers.set('X-Powered-By', poweredBy)
+    return res
+  })
+
+export const errorHandlerMiddleware = createHttpMiddleware(
+  async (req, ctx, next) => {
+    console.log('MIDDLEWARE B before')
+    try {
+      const res = await next()
+      console.log('MIDDLEWARE B after')
+      return res
+    } catch (err: unknown) {
+      console.log('MIDDLEWARE B error')
+      return createJSONResponse({ message: 'some error' }, 409)
+    }
+  },
+)
+
+export const authMiddleware = createHttpMiddleware(async (req, ctx, next) => {
+  console.log('MIDDLEWARE C before')
+  const authHeader = req.headers.get('AUTHORIZATION')
+
+  if (authHeader?.startsWith('Bearer') !== true) {
+    return createJSONResponse({ message: 'Unauthorized' }, 401)
+  }
+  const userId = authHeader.split(' ')[1]
+  ctx.set('userId', userId)
+
+  const res = await next()
+  res.headers.set('X-User-Id', userId)
+  console.log('MIDDLEWARE C after')
+  userId //?
+  return res
+})
+
+export const GET = smerf
+  .use([poweredByMiddleware('extend'), errorHandlerMiddleware, authMiddleware])
+  .handler(handler)
+
+```
 
 #### Testing
+
+Define the request, context and next arguments.Feed them to the middleware and check the result.
+
+If you want to test with handler, define the handler with middleware with `smerf.use(someMiddleware).handler(someHandler)` and invoke it with `(req, ctx`)
+
+```ts
+// ./src/handlers/http/index.test.ts
+
+import { createJSONResponse } from '@helloextend/api-utils'
+import {
+  poweredByMiddleware,
+  errorHandlerMiddleware,
+  authMiddleware,
+  getCtxKey,
+} from './index'
+import smerf, {
+  makeTestContext,
+  makeTestRequest,
+  createHttpHandler,
+} from '@helloextend/smerf'
+
+test('test middleware by itself', async () => {
+  const poweredBy = 'Smerf'
+  const req = makeTestRequest()
+  const ctx = makeTestContext()
+  const next = () => Promise.resolve(new Response())
+  const middleware = poweredByMiddleware(poweredBy)
+
+  const res = await middleware(req, ctx, next)
+
+  expect(res.headers.get('X-Powered-By')).toBe(poweredBy)
+})
+
+test('test middleware by combining it with a handler', async () => {
+  const poweredBy = 'Smerf'
+  const req = makeTestRequest()
+  const ctx = makeTestContext()
+  const someHandler = createHttpHandler(async (_req, _ctx) =>
+    createJSONResponse('Hello World'),
+  )
+  const middleware = poweredByMiddleware(poweredBy)
+  const handlerWithMiddleware = smerf.use(middleware).handler(someHandler)
+
+  const res = await handlerWithMiddleware(req, ctx)
+
+  expect(res.headers.get('X-Powered-By')).toBe(poweredBy)
+})
+
+test('errorHandlerMiddleware should catch errors and return error response', async () => {
+  const req = makeTestRequest()
+  const ctx = makeTestContext()
+  const next = () => {
+    throw new Error('Test error')
+  }
+
+  const res = await errorHandlerMiddleware(req, ctx, next)
+
+  expect(res.status).toBe(409)
+  // Read the Stream: Use res.text() to read the stream to completion.
+  // This returns a promise that resolves with a text string representing the contents of the body.
+  // Parse the Text: If the response body is JSON, you need to parse this text into a JavaScript object, using JSON.parse()
+  const result = JSON.parse(await res.text())
+  expect(result).toEqual({ message: 'some error' })
+})
+
+test('authMiddleware should return 401 if no valid auth header is present', async () => {
+  const req = makeTestRequest() // Ensure this request does not have an AUTHORIZATION header
+  const ctx = makeTestContext()
+
+  const res = await authMiddleware(req, ctx, () =>
+    Promise.resolve(new Response()),
+  )
+  expect(res.status).toBe(401)
+  const result = JSON.parse(await res.text())
+  expect(result).toEqual({ message: 'Unauthorized' })
+
+  // handler testing (extra)
+  // const someHandler = createHttpHandler(async (_req, _ctx) =>
+  //   createJSONResponse('Hello World'),
+  // )
+  // const res2 = await smerf.use(authMiddleware).handler(someHandler)(req, ctx)
+  // expect(res2.status).toBe(401)
+})
+
+test('authMiddleware should set userId in context for valid auth header', async () => {
+  const userId = '12345'
+  const req = makeTestRequest('http://localhost:3000', {
+    headers: { AUTHORIZATION: `Bearer ${userId}` },
+  })
+  const ctx = makeTestContext()
+
+  const next = () => Promise.resolve(new Response())
+  const res = await authMiddleware(req, ctx, next)
+
+  expect(res.status).toBe(200)
+  const val = await getCtxKey(ctx, 'userId')
+  expect(val).toEqual(userId)
+
+  // handler version (extra)
+  // const someHandler = createHttpHandler(async (_req, _ctx) =>
+  //   createJSONResponse('Hello World'),
+  // )
+  // const res2 = await smerf.use(authMiddleware).handler(someHandler)(req, ctx)
+  // expect(res2.status).toBe(200)
+})
+```
 
 
 
