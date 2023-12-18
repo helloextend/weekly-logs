@@ -23,6 +23,7 @@ export const POST = createHttpHandler(async (req, _ctx) =>
 ```ts
 import type { Request } from 'node-fetch'
 import type { Context } from '@helloextend/smerf'
+
 const handler = async (req: Request, _ctx: Context) => {..})
 
 // becomes 
@@ -244,14 +245,17 @@ const middlewareB = createHttpMiddleware(async (_req, _ctx, next) => {
 export const GET = smerf.use([middlewareA, middlewareB]).handler(handler)
 // same thing
 // export const GET = smerf.use(middlewareA).use(middlewareB).handler(handler)
-
 ```
+
+> Compared to middy, the API is more pleasant
+>
+> ```ts
+> middy(handler).use(middlewareA).use(middlewareB)
+> ```
 
 ![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/7zygt7pkd2zf2lbi2hxy.png)
 
 If we flip the order of the middleware, we can test the outcome. Here middlewareA is blocking, but both B and A enter the middleware, and B even executes on the way out, the header even gets added.
-
-![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/myissh6nhnxrtf63dol2.png)
 
 ```ts
 // ./src/handlers/http/index.ts
@@ -289,6 +293,8 @@ const middlewareB = createHttpMiddleware(async (_req, _ctx, next) => {
 export const GET = smerf.use([middlewareB, middlewareA]).handler(handler)
 ```
 
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/myissh6nhnxrtf63dol2.png)
+
 Test with rest client extension:
 
 ```bash
@@ -304,8 +310,6 @@ GET {{baseUrl}}
 #### Context API
 
 Example of setting the context:
-
-
 
 ```ts
 // ./src/handlers/http/index.ts
@@ -369,7 +373,6 @@ Mind that we cannot set the same context multiple times. It will throw a 500 err
 If we must do that, then use `allowOverride: true`
 
 ```ts
-
 ctx.set('userId', userId)
 ctx.set('userId', userId, {allowOverride: true})
 ```
@@ -625,6 +628,192 @@ test('authMiddleware should set userId in context for valid auth header', async 
   // expect(res2.status).toBe(200)
 })
 ```
+
+#### Extend Default Middleware
+
+`extendDefaultMiddleware` is our boilerplate - it is core middleware that we want to apply to every API endpoint. This includes:
+
+- Logger
+- Error handler
+- Extend testing
+
+You can optionally add:
+
+- CORS
+- Auth
+- Version mapping
+
+TODO: fix the type issue
+
+```ts
+// ./src/handlers/http/index.ts
+import {
+  createJSONResponse,
+  extendDefaultMiddleware,
+} from '@helloextend/api-utils'
+import smerf, { createHttpHandler } from '@helloextend/smerf'
+
+const handler = createHttpHandler(async (_req, ctx) => {
+  // with extendDefaultMiddleware, we can grab the logger from the context
+  const logger = await getLogger(ctx) 
+  logger.info('here is some info')
+  return createJSONResponse({ data: 'Hello Extend' })
+})
+
+const handlerWithMiddleware = smerf
+  .http(extendDefaultMiddleware({ cors: true })) // some type isues for now
+  .handler(handler)
+
+export const GET = handlerWithMiddleware
+
+```
+
+```ts
+// ./src/handlers/http/index.test.ts
+
+import { GET } from './index'
+import { makeTestContext, makeTestRequest } from '@helloextend/smerf'
+
+describe('GET handler', () => {
+  it('should return a JSON response', async () => {
+    const req = makeTestRequest()
+    const ctx = makeTestContext()
+
+    // Error: KeyNotFound req.pathParams not found in context. 
+    // Did you forget to set it or attach the middleware?
+    const response = await GET(req, ctx)
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toBe('Hello Smerf')
+  })
+})
+```
+
+#### Versioning middleware
+
+`versionIOMapperMiddleware` allows us to give different responses for different versions, while not having more than one handler.
+
+```ts
+// ./src/handlers/http/index.ts
+
+import {
+  ApiVersion,
+  createJSONResponse,
+  extendDefaultMiddleware,
+  versionIOMapperMiddleware,
+} from '@helloextend/api-utils'
+import smerf, {
+  createHttpHandler,
+  createHttpMiddleware,
+  getLogger,
+} from '@helloextend/smerf'
+
+const handler = createHttpHandler(async (_req, ctx) => {
+  // with extendDefaultMiddleware, we can grab the logger from the context
+  const logger = await getLogger(ctx)
+  logger.info('here is some info')
+  return createJSONResponse({ data: 'Hello Extend' })
+})
+
+export const poweredByMiddleware = (poweredBy = 'Smerf') =>
+  createHttpMiddleware(async (_req, _ctx, next) => {
+    console.log('MIDDLEWARE A before')
+    const res = await next()
+    console.log('MIDDLEWARE A after')
+    res.headers.set('X-Powered-By', poweredBy)
+    return res
+  })
+
+const handlerWithMiddleware = smerf
+  .http(extendDefaultMiddleware({ cors: true })) // some type issues for now
+  .use(poweredByMiddleware())
+  .use(
+    versionIOMapperMiddleware([
+      {
+        version: '1',
+        aliases: [
+          'default',
+          ApiVersion['2019-08-01'],
+          ApiVersion['2020-08-01'],
+        ],
+        response: {
+          mapper: output => {
+            // KEY (this could even be a promise)
+            return Promise.resolve({
+              ...output,
+              data: 'Hello Smerf',
+            })
+          },
+          // mapper: output => {
+          //   return {
+          //     ...output,
+          //     data: 'Hello Smerf',
+          //   }
+          // },
+        },
+      },
+      {
+        version: '2',
+        aliases: [
+          'latest',
+          'dev',
+          ApiVersion['2021-01-01'],
+          ApiVersion['2021-04-01'],
+        ],
+      },
+    ]),
+  )
+  .handler(handler)
+
+export const GET = handlerWithMiddleware
+```
+
+```bash
+@baseUrl = http://localhost:3000
+
+
+###  
+
+GET {{baseUrl}}
+x-extend-api-version: default
+
+###
+
+GET {{baseUrl}}
+x-extend-api-version: latest
+```
+
+`default` gives the mapped `Hello Smerf`
+
+```bash
+HTTP/1.1 200 OK
+content-type: application/json
+x-powered-by: Smerf
+content-length: 22
+Date: Mon, 18 Dec 2023 18:49:16 GMT
+Connection: close
+
+{
+  "data": "Hello Smerf"
+}
+```
+
+While `latest` gives `Hello Extend`
+
+```bash
+HTTP/1.1 200 OK
+content-type: application/json
+x-powered-by: Smerf
+content-length: 23
+Date: Mon, 18 Dec 2023 18:50:48 GMT
+Connection: close
+
+{
+  "data": "Hello Extend"
+}
+```
+
+
 
 
 
