@@ -661,11 +661,10 @@ const handler = createHttpHandler(async (_req, ctx) => {
 })
 
 const handlerWithMiddleware = smerf
-  .http(extendDefaultMiddleware({ cors: true })) // some type isues for now
+  .use([extendDefaultMiddleware()])
   .handler(handler)
 
 export const GET = handlerWithMiddleware
-
 ```
 
 ```ts
@@ -725,8 +724,7 @@ export const poweredByMiddleware = (poweredBy = 'Smerf') =>
   })
 
 const handlerWithMiddleware = smerf
-  .http(extendDefaultMiddleware({ cors: true })) // some type issues for now
-  .use(poweredByMiddleware())
+  .use(poweredByMiddleware(),extendDefaultMiddleware())
   .use(
     versionIOMapperMiddleware([
       {
@@ -813,15 +811,384 @@ Connection: close
 }
 ```
 
-
-
-
-
 ### Router
 
 Like Next.js.
 
 ![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/i0h7oqlqqbjo4s8yf9zd.png)
+
+```ts
+// ./src/handlers/http/hello/[name].ts
+
+import { createJSONResponse } from '@helloextend/api-utils'
+import { createHttpHandler, getUrlParams } from '@helloextend/smerf'
+
+const handler = createHttpHandler(async (_req, ctx) => {
+  const { name } = await getUrlParams(ctx)
+  return createJSONResponse(`Hello ${name}`)
+})
+
+export const GET = handler
+```
+
+```bash
+# test.rest
+
+@baseUrl = http://localhost:3000
+
+GET {{baseUrl}}/hello/murat
+```
+
+```bash
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 13
+Date: Tue, 19 Dec 2023 14:18:28 GMT
+Connection: close
+
+"Hello murat"
+```
+
+When we use `start:smerf` , `smerf build ` executes and creates a a file `.smerf/manifest.json`.
+
+An entry is created for every endpoint in the application.
+
+In turn, local server imports this file  and starts up the routes (using Fastify under the hood).
+
+```json
+{
+    "handlers": {
+        "http": [
+            {
+                "filePath": "handlers/http/hello/[name].GET.ts",
+                "export": "default",
+                "httpMethod": "GET",
+                "urlPath": "/hello/[name]",
+                "originalFilePath": "../src/handlers/http/hello/[name].ts",
+                "originalExport": "GET",
+                "config": {}
+            },
+            {
+                "filePath": "handlers/http/index.GET.ts",
+                "export": "default",
+                "httpMethod": "GET",
+                "urlPath": "/",
+                "originalFilePath": "../src/handlers/http/index.ts",
+                "originalExport": "GET",
+                "config": {}
+            }
+        ],
+        "events": [
+            {
+                "filePath": "handlers/events/example.ts",
+                "export": "default",
+                "topic": "/example",
+                "originalFilePath": "../src/handlers/events/example.ts",
+                "originalExport": "default",
+                "config": {}
+            }
+        ]
+    },
+    "adapters": {}
+}
+```
+
+#### Middleware options
+
+Let's say we have a situation where we are repeating the middleware.
+
+```ts
+// ./src/handlers/http/world.ts
+
+import { createJSONResponse } from '@helloextend/api-utils'
+import smerf, {
+  createHttpHandler,
+  createHttpMiddleware,
+} from '@helloextend/smerf'
+
+const handlerGET = createHttpHandler(async (_req, _ctx) => {
+  return createJSONResponse({ data: 'GET World' })
+})
+
+const handlerPOST = createHttpHandler(async (_req, _ctx) => {
+  return createJSONResponse({ data: 'POST World' })
+})
+
+const middleware = createHttpMiddleware(async (_req, _ctx, next) => {
+  const res = await next()
+  res.headers.set('X-Powered-By', 'Extend')
+  return res
+})
+
+export const GET = smerf.use(middleware).handler(handlerGET)
+export const POST = smerf.use(middleware).handler(handlerPOST)
+```
+
+If we use `export const _middleware` the `smerf build` command automatically attaches that middleware to the handlers. The below is the same as the above.
+
+```ts
+// ./src/handlers/http/hello/world.ts
+
+import { createJSONResponse } from '@helloextend/api-utils'
+import { createHttpHandler, createHttpMiddleware } from '@helloextend/smerf'
+
+const handlerGET = createHttpHandler(async (_req, _ctx) => {
+  return createJSONResponse({ data: 'GET World' })
+})
+
+const handlerPOST = createHttpHandler(async (_req, _ctx) => {
+  return createJSONResponse({ data: 'POST World' })
+})
+
+export const _middleware = createHttpMiddleware(async (_req, _ctx, next) => {
+  const res = await next()
+  res.headers.set('X-Powered-By', 'Extend')
+  return res
+})
+
+export const GET = handlerGET
+export const POST = handlerPOST
+```
+
+```bash
+# test.rest
+
+GET {{baseUrl}}/world
+
+###
+POST {{baseUrl}}/world
+```
+
+```bash
+HTTP/1.1 200 OK
+content-type: application/json
+x-powered-by: Extend
+content-length: 20
+Date: Tue, 19 Dec 2023 15:19:57 GMT
+Connection: close
+
+{
+  "data": "GET World"
+}
+
+
+
+HTTP/1.1 200 OK
+content-type: application/json
+x-powered-by: Extend
+content-length: 21
+Date: Tue, 19 Dec 2023 15:19:20 GMT
+Connection: close
+
+{
+  "data": "POST World"
+}
+```
+
+If we have some middleware that we want attached to multiple endpoints, we create a `_middleware.ts` file.  If we want that middleware only attached to certain endpoints, we can place it in that specific folder; i.e. if it is under http folder, it will impact everything. The middleware in this file runs before other middleware defined in the handlers.
+
+```ts
+// ./src/handlers/http/_middleware.ts
+
+// If we have some middleware that we want attached to every endpoint,
+// we create a `_middleware.ts` file
+
+import { extendDefaultMiddleware } from '@helloextend/api-utils'
+import { createHttpMiddleware } from '@helloextend/smerf'
+
+const requestTimingMiddleware = createHttpMiddleware(
+  async (_req, _ctx, next) => {
+    const startTime = Date.now()
+    console.log(
+      `(common middleware) Request started at ${new Date(
+        startTime,
+      ).toISOString()}`,
+    )
+
+    const response = await next()
+    console.log('Common middleware after')
+
+    const endTime = Date.now()
+    const duration = endTime - startTime
+    console.log(
+      `(common middleware) Request ended at ${new Date(
+        endTime,
+      ).toISOString()} with duration ${duration}ms`,
+    )
+
+    response.headers.set('X-Request-Duration', `${duration}ms`)
+
+    return response
+  },
+)
+
+export default [extendDefaultMiddleware(), requestTimingMiddleware]
+```
+
+#### Example of creating middleware specific to a route
+
+```ts
+// ./src/handlers/http/hello/[name]/index.ts
+
+import { createJSONResponse } from '@helloextend/api-utils'
+import { createHttpHandler, getUrlParams } from '@helloextend/smerf'
+
+const handler = createHttpHandler(async (_req, ctx) => {
+  const { name } = await getUrlParams(ctx)
+  return createJSONResponse(`Hello ${name}`)
+})
+
+export const GET = handler
+```
+
+```ts
+// ./src/handlers/http/hello/[name]/about.ts
+
+import { createJSONResponse } from '@helloextend/api-utils'
+import { createHttpHandler, getUrlParams } from '@helloextend/smerf'
+
+const handler = createHttpHandler(async (_req, ctx) => {
+  const { name } = await getUrlParams(ctx)
+  return createJSONResponse({ data: `About ${name}` })
+})
+
+export const GET = handler
+```
+
+```ts
+// ./src/handlers/http/hello/[name]/_middleware.ts
+
+import { NotFound } from '@helloextend/api-utils'
+import { createHttpMiddleware, getUrlParams } from '@helloextend/smerf'
+
+export default createHttpMiddleware(async (req, ctx, next) => {
+  const { name } = await getUrlParams(ctx)
+  if (name === 'fake') {
+    throw new NotFound()
+  }
+
+  return await next()
+})
+```
+
+
+
+```bash
+###
+GET {{baseUrl}}/hello/murat
+
+###
+GET {{baseUrl}}/hello/murat/about
+
+###
+GET {{baseUrl}}/hello/fake
+```
+
+```bash
+HTTP/1.1 200 OK
+content-type: application/json
+x-request-duration: 2ms
+content-length: 13
+Date: Tue, 19 Dec 2023 16:29:29 GMT
+Connection: close
+
+"Hello murat"
+
+###
+
+HTTP/1.1 200 OK
+content-type: application/json
+x-request-duration: 2ms
+content-length: 22
+Date: Tue, 19 Dec 2023 16:29:46 GMT
+Connection: close
+
+{
+  "data": "About murat"
+}
+
+###
+
+HTTP/1.1 404 Not Found
+content-type: application/json
+content-length: 81
+Date: Tue, 19 Dec 2023 16:30:00 GMT
+Connection: close
+
+{
+  "code": "resource_not_found",
+  "message": "The resource requested cannot be found."
+}
+
+```
+
+#### Testing
+
+Define the request, context arguments.Feed them to the handler, check the result.
+
+With shallow testing, we test the handler directly and leave out the middleware.
+
+With deep testing, we use the version of the handler in the .smerf folder, which includes the middleware.
+
+```ts
+// ./src/handlers/http/world.test.ts
+
+import { makeTestHttpContext, makeTestRequest } from '@helloextend/smerf'
+import { GET, POST } from './world'
+// for Deep testing, we use the handler with the middleware
+import handlerGET from '../../../.smerf/handlers/http/world.GET'
+import handlerPOST from '../../../.smerf/handlers/http/world.POST'
+
+// Define the request, context arguments.Feed them to the handler, check the result.
+
+describe('world', () => {
+  it('Shallow testing - tests handler directly, leaves middleware out', async () => {
+    const req = makeTestRequest()
+    const ctx = makeTestHttpContext()
+
+    const res = await GET(req, ctx)
+    const result = await res.json()
+    expect(res.status).toBe(200)
+    expect(result).toEqual({ data: 'GET World' })
+
+    const postRes = await POST(req, ctx)
+    const postResult = await postRes.json()
+    expect(postRes.status).toBe(200)
+    expect(postResult).toEqual({ data: 'POST World' })
+  })
+
+  it('Deep testing GET', async () => {
+    const req = makeTestRequest()
+    const ctx = makeTestHttpContext()
+
+    const res = await handlerGET(req, ctx)
+    res //?
+    const result = await res.json()
+    expect(res.status).toBe(200)
+    expect(result).toEqual({ data: 'GET World' })
+
+    // if we test this here, we'll get a middleware error because of the repetition of the middleware
+    // we would use a different it block
+    // const postRes = await handlerPOST(req, ctx)
+    // const postResult = await postRes.json()
+    // expect(postRes.status).toBe(200)
+    // expect(postResult).toEqual({ data: 'POST World' })
+  })
+
+  it('Deep testing POST', async () => {
+    const req = makeTestRequest()
+    const ctx = makeTestHttpContext()
+    const postRes = await handlerPOST(req, ctx)
+    const postResult = await postRes.json()
+    expect(postRes.status).toBe(200)
+    expect(postResult).toEqual({ data: 'POST World' })
+  })
+})
+```
+
+
+
+#### Local server - Smerf
 
 ### Local development
 
