@@ -1188,17 +1188,221 @@ describe('world', () => {
 
 
 
-#### Local server - Smerf
-
 ### Local development
 
+#### Smerf mode
+
+* Uses `smerf build` to create the `manifest.json` file to define the routes.
+* Uses env vars from the .env file.
+* Can mix local and AWS resources.
+* Fastest, least like prod.
+
+#### Local mode
+
+* Uses local cdk files to define routes.
+* Uses env vars from the .env file.
+* Can mix local and AWS resources.
+* Faster, less like prod.
+
+#### Remote mode
+
+* Uses local cdk files to define routes. 
+* Pulls env vars from an environment (sandbox, dev).
+* Uses AWS resources.
+* Slower, but like prod.
+
+### Converting traditional lambda handlers to Smerf
+
+At `src/lambdas/api/best-health-check.ts` you will find `awsLambdaWrapperV1`. This converts Smerf Handler to AWS Lambda Handler. 
+
+Which means we can write our old handlers in Smerf and then wrap them with `awsLambdaWrapperV1`. This way the old files can begin to use Smerf.
+
+```ts
+export default awsLambdaWrapperV1(handlerWithVersioning)
+```
+
+### Using traditional lambda handlers and Smerf handlers together in CDK
+
+For cdk, we might be importing our old lambdas from `../lambdas`, but for smerf we can import them from `../../.smerf` and use the `awsLambdaWrapperV1`. 
+
+```ts
+// ./src/cdk/lambdas.ts
+
+// our traditional handlers
+import { awsLambdaWrapperV1 } from '@helloextend/api-utils'
+import bestHealthCheck from '../lambdas/api/best-health-check'
+import productsGET from '../lambdas/api/products-get'
+import TestGET from '../lambdas/api/test-apig-handler'
+
+// smerf handlers
+import IndexGETHandler from '../../.smerf/handlers/http/index.GET'
+const IndexGET = awsLambdaWrapperV1(IndexGETHandler)
+
+import IndexPOSTHandler from '../../.smerf/handlers/http/world.POST'
+const IndexPOST = awsLambdaWrapperV1(IndexPOSTHandler)
+
+import HelloNameHandler from '../../.smerf/handlers/http/hello/[name]/index.GET'
+const HelloNameGET = awsLambdaWrapperV1(HelloNameHandler)
+
+export {
+  bestHealthCheck,
+  productsGET,
+  TestGET,
+  IndexGET,
+  HelloNameGET,
+  IndexPOST,
+}
+```
+
+```ts
+// ./src/cdk/stacks/api.ts
+
+// ...
+
+		// our traditional handlers
+    api.route({
+      resourcePath: '/health',
+      httpMethod: 'GET',
+      name: 'Extend_API_GETHealth',
+      handler: 'lambdas.bestHealthCheck',
+    })
+
+    api.route({
+      resourcePath: '/products',
+      httpMethod: 'GET',
+      name: 'Extend_API_GETProducts',
+      handler: 'lambdas.productsGET',
+    })
+
+    api.route({
+      resourcePath: '/test',
+      httpMethod: 'GET',
+      name: 'Extend_API_GETTest',
+      handler: 'lambdas.TestGET',
+    })
+
+		// smerf handlers
+    api.route({
+      resourcePath: '/',
+      httpMethod: 'POST',
+      name: 'Extend_API_POSTIndex',
+      handler: 'index.IndexGET',
+    })
+
+    api.route({
+      resourcePath: '/hello/{name}',
+      httpMethod: 'GET',
+      name: 'Extend_API_GETHelloName',
+      handler: 'index.HelloNameGET',
+    })
+
+    api.route({
+      resourcePath: '/',
+      httpMethod: 'POST',
+      name: 'Extend_API_POSTIndex',
+      handler: 'index.IndexPOST',
+    })
+```
+
+### meta: using `SmerfHttpV1Builder`
+
+With it, our smerf handlers do not need to be defined in cdk lambdas and in the api gateway stack.
+
+
+
+```ts
+// ./src/cdk/lambdas.ts
+
+// our traditional handlers
+import { awsLambdaWrapperV1 } from '@helloextend/api-utils'
+import bestHealthCheck from '../lambdas/api/best-health-check'
+import productsGET from '../lambdas/api/products-get'
+import TestGET from '../lambdas/api/test-apig-handler'
+
+// import IndexGETHandler from '../../.smerf/handlers/http/index.GET'
+// const IndexGET = awsLambdaWrapperV1(IndexGETHandler)
+
+// import IndexPOSTHandler from '../../.smerf/handlers/http/world.POST'
+// const IndexPOST = awsLambdaWrapperV1(IndexPOSTHandler)
+
+// import HelloNameHandler from '../../.smerf/handlers/http/hello/[name]/index.GET'
+// const HelloNameGET = awsLambdaWrapperV1(HelloNameHandler)
+
+export {
+  bestHealthCheck,
+  productsGET,
+  TestGET,
+  // IndexGET,
+  // HelloNameGET,
+  // IndexPOST,
+}
+
+```
+
+```ts
+// ./src/cdk/stacks/api.ts
+
+// ...
+
+		// our traditional handlers
+    api.route({
+      resourcePath: '/health',
+      httpMethod: 'GET',
+      name: 'Extend_API_GETHealth',
+      handler: 'lambdas.bestHealthCheck',
+    })
+
+    api.route({
+      resourcePath: '/products',
+      httpMethod: 'GET',
+      name: 'Extend_API_GETProducts',
+      handler: 'lambdas.productsGET',
+    })
+
+    api.route({
+      resourcePath: '/test',
+      httpMethod: 'GET',
+      name: 'Extend_API_GETTest',
+      handler: 'lambdas.TestGET',
+    })
+
+    // api.route({
+    //   resourcePath: '/',
+    //   httpMethod: 'POST',
+    //   name: 'Extend_API_POSTIndex',
+    //   handler: 'index.IndexGET',
+    // })
+
+    // api.route({
+    //   resourcePath: '/hello/{name}',
+    //   httpMethod: 'GET',
+    //   name: 'Extend_API_GETHelloName',
+    //   handler: 'index.HelloNameGET',
+    // })
+
+    // api.route({
+    //   resourcePath: '/',
+    //   httpMethod: 'POST',
+    //   name: 'Extend_API_POSTIndex',
+    //   handler: 'index.IndexPOST',
+    // })
+
+    // This is the Smerf Beta CDK Construct. Routes defined in /src/handlers will be automatically added to the API Gateway. Comment this out and uncomment other stuff if you don't want to use it.
+    const smerfApp = SmerfHttpV1Builder.fromManifest(
+      this.resource,
+      'SmerfApp',
+      SMERF_MANIFEST_PATH,
+      { apiBuilder: api },
+    )
+    smerfApp.build()
+```
+
+At this point local mode behaves 1:1 with smerf mode. 
+
+### 
 
 
 
 
-### Application from code
 
-When the smerf build command runs, a `manifest.json` file is created, which powers cdk. 
-
-![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/cy4xbil3vzsrwoak9e4u.png)
 
