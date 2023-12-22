@@ -511,10 +511,10 @@ export const authMiddleware = createHttpMiddleware(async (req, ctx, next) => {
   const res = await next()
   res.headers.set('X-User-Id', userId)
   console.log('MIDDLEWARE C after')
-  userId //?
   return res
 })
 
+// if we don't pass in an arg, it will take 'Smerf' as default
 export const GET = smerf
   .use([poweredByMiddleware('extend'), errorHandlerMiddleware, authMiddleware])
   .handler(handler)
@@ -643,8 +643,6 @@ You can optionally add:
 - Auth
 - Version mapping
 
-TODO: fix the type issue
-
 ```ts
 // ./src/handlers/http/index.ts
 import {
@@ -678,8 +676,6 @@ describe('GET handler', () => {
     const req = makeTestRequest()
     const ctx = makeTestContext()
 
-    // Error: KeyNotFound req.pathParams not found in context. 
-    // Did you forget to set it or attach the middleware?
     const response = await GET(req, ctx)
 
     expect(response.status).toBe(200)
@@ -734,6 +730,9 @@ const handlerWithMiddleware = smerf
           ApiVersion['2019-08-01'],
           ApiVersion['2020-08-01'],
         ],
+        // the mapper is useful when you have multiple versions of the same endpoint
+        // and you want the single handler to handle all versions
+        // the response & mapper properties take effect then
         response: {
           mapper: output => {
             // KEY (this could even be a promise)
@@ -816,6 +815,8 @@ Connection: close
 Like Next.js.
 
 ![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/i0h7oqlqqbjo4s8yf9zd.png)
+
+`getUrlParams` is key here, getting the parameter from the file name with brackets.
 
 ```ts
 // ./src/handlers/http/hello/[name].ts
@@ -1124,7 +1125,7 @@ Connection: close
 
 #### Testing
 
-Define the request, context arguments.Feed them to the handler, check the result.
+Define the request, context arguments. Feed them to the handler, check the result.
 
 With shallow testing, we test the handler directly and leave out the middleware.
 
@@ -1387,7 +1388,7 @@ export {
     //   handler: 'index.IndexPOST',
     // })
 
-    // This is the Smerf Beta CDK Construct. Routes defined in /src/handlers will be automatically added to the API Gateway. Comment this out and uncomment other stuff if you don't want to use it.
+    // This is the Smerf Beta CDK Construct. Routes defined in /src/handlers will be automatically added to the API Gateway. 
     const smerfApp = SmerfHttpV1Builder.fromManifest(
       this.resource,
       'SmerfApp',
@@ -1400,7 +1401,6 @@ export {
 At this point local mode behaves 1:1 with smerf mode. 
 
 ### 
-
 
 
 
