@@ -1,5 +1,13 @@
 ## Smerf notes
 
+Based on [Mike D's video series](https://drive.google.com/drive/folders/1jjI28C6qBVJCGg_hdYBODTd-CkSgX_GM).
+
+With Smerf:
+
+* you get local development
+* you get nexjs-ike routing
+* you write less cdk
+
 ### Handlers
 
 ```ts
@@ -523,7 +531,7 @@ export const GET = smerf
 
 #### Testing
 
-Define the request, context and next arguments.Feed them to the middleware and check the result.
+Define the request, context and next arguments. Feed them to the middleware and check the result.
 
 If you want to test with handler, define the handler with middleware with `smerf.use(someMiddleware).handler(someHandler)` and invoke it with `(req, ctx`)
 
@@ -1125,7 +1133,7 @@ Connection: close
 
 #### Testing
 
-Define the request, context arguments. Feed them to the handler, check the result.
+Define the request & context arguments. Feed them to the handler, check the result.
 
 With shallow testing, we test the handler directly and leave out the middleware.
 
@@ -1134,52 +1142,51 @@ With deep testing, we use the version of the handler in the .smerf folder, which
 ```ts
 // ./src/handlers/http/world.test.ts
 
-import { makeTestHttpContext, makeTestRequest } from '@helloextend/smerf'
+import {
+  makeTestHttpContext,
+  makeTestRequest,
+  mount,
+  type Context,
+} from '@helloextend/smerf'
+import path from 'node:path'
 import { GET, POST } from './world'
-// for Deep testing, we use the handler with the middleware
-import handlerGET from '../../../.smerf/handlers/http/world.GET'
-import handlerPOST from '../../../.smerf/handlers/http/world.POST'
 
-// Define the request, context arguments.Feed them to the handler, check the result.
+// Define the request, context arguments. Feed them to the handler, check the result.
 
 describe('world', () => {
-  it('Shallow testing - tests handler directly, leaves middleware out', async () => {
-    const req = makeTestRequest()
-    const ctx = makeTestHttpContext()
+  let req: Request
+  let ctx: Context
 
-    const res = await GET(req, ctx)
-    const result = await res.json()
-    expect(res.status).toBe(200)
-    expect(result).toEqual({ data: 'GET World' })
+  beforeEach(() => {
+    req = makeTestRequest()
+    ctx = makeTestHttpContext()
+  })
 
+  it('Shallow testing GET- tests handler directly, leaves middleware out', async () => {
+    const getRes = await GET(req, ctx)
+    const getResult = await getRes.json()
+    expect(getRes.status).toBe(200)
+    expect(getResult).toEqual({ data: 'GET World' })
+  })
+
+  test('Shallow testing POST', async () => {
     const postRes = await POST(req, ctx)
     const postResult = await postRes.json()
     expect(postRes.status).toBe(200)
     expect(postResult).toEqual({ data: 'POST World' })
   })
 
-  it('Deep testing GET', async () => {
-    const req = makeTestRequest()
-    const ctx = makeTestHttpContext()
-
-    const res = await handlerGET(req, ctx)
-    res //?
-    const result = await res.json()
-    expect(res.status).toBe(200)
-    expect(result).toEqual({ data: 'GET World' })
-
-    // if we test this here, we'll get a middleware error because of the repetition of the middleware
-    // we would use a different it block
-    // const postRes = await handlerPOST(req, ctx)
-    // const postResult = await postRes.json()
-    // expect(postRes.status).toBe(200)
-    // expect(postResult).toEqual({ data: 'POST World' })
+  test('Deep testing GET', async () => {
+    const handler = await mount(path.resolve(__dirname, './world.ts'), 'GET')
+    const getRes = await handler(req, ctx)
+    const getResult = await getRes.json()
+    expect(getRes.status).toBe(200)
+    expect(getResult).toEqual({ data: 'GET World' })
   })
 
-  it('Deep testing POST', async () => {
-    const req = makeTestRequest()
-    const ctx = makeTestHttpContext()
-    const postRes = await handlerPOST(req, ctx)
+  test('Deep testing POST', async () => {
+    const handler = await mount(path.resolve(__dirname, './world.ts'), 'POST')
+    const postRes = await handler(req, ctx)
     const postResult = await postRes.json()
     expect(postRes.status).toBe(200)
     expect(postResult).toEqual({ data: 'POST World' })
@@ -1193,22 +1200,22 @@ describe('world', () => {
 
 #### Smerf mode
 
-* Uses `smerf build` to create the `manifest.json` file to define the routes.
-* Uses env vars from the .env file.
+* **Uses `smerf build` to create the `manifest.json` file to define the routes.**
+* **Uses env vars from the .env file.**
 * Can mix local and AWS resources.
 * Fastest, least like prod.
 
 #### Local mode
 
-* Uses local cdk files to define routes.
+* **Uses local cdk files to define routes.**
 * Uses env vars from the .env file.
 * Can mix local and AWS resources.
 * Faster, less like prod.
 
 #### Remote mode
 
-* Uses local cdk files to define routes. 
-* Pulls env vars from an environment (sandbox, dev).
+* **Uses local cdk files to define routes.** 
+* **Pulls env vars from an environment (sandbox, dev).**
 * Uses AWS resources.
 * Slower, but like prod.
 
@@ -1309,8 +1316,6 @@ export {
 
 With it, our smerf handlers do not need to be defined in cdk lambdas and in the api gateway stack.
 
-
-
 ```ts
 // ./src/cdk/lambdas.ts
 
@@ -1397,12 +1402,6 @@ export {
     )
     smerfApp.build()
 ```
-
-At this point local mode behaves 1:1 with smerf mode. 
-
-### 
-
-
 
 
 
