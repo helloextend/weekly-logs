@@ -1,12 +1,40 @@
-## Smerf notes
+## Smerf onboarding guide
 
 Based on [Mike D's video series](https://drive.google.com/drive/folders/1jjI28C6qBVJCGg_hdYBODTd-CkSgX_GM).
+
+All working examples and final code can be found in the [Backend Service Template](https://github.com/helloextend/backend-service-template/tree/main).
 
 With Smerf:
 
 * you get local development
 * you get nexjs-ike routing
 * you write less cdk
+
+### ToC
+
+- [Handlers](#handlers)
+  - [Interacting with the headers](#interacting-with-the-headers)
+- [Middleware](#middleware)
+  - [Middleware pattern](#middleware-pattern)
+  - [Attaching middleware](#attaching-middleware)
+  - [Middleware ordering, Signature/helpers](#middleware-ordering-signaturehelpers)
+  - [Context API](#context-api)
+  - [Complex middleware](#complex-middleware)
+  - [Reusable middleware](#reusable-middleware)
+  - [Testing](#testing)
+  - [Extend Default Middleware](#extend-default-middleware)
+  - [Versioning middleware](#versioning-middleware)
+- [Router](#router)
+  - [Middleware options](#middleware-options)
+  - [Example of creating middleware specific to a route](#example-of-creating-middleware-specific-to-a-route)
+  - [Testing](#testing-1)
+- [Local development](#local-development)
+  - [Smerf mode](#smerf-mode)
+  - [Local mode](#local-mode)
+  - [Remote mode](#remote-mode)
+- [Converting traditional lambda handlers to Smerf](#converting-traditional-lambda-handlers-to-smerf)
+- [Using traditional lambda handlers and Smerf handlers together in CDK](#using-traditional-lambda-handlers-and-smerf-handlers-together-in-cdk)
+- [meta: using `SmerfHttpV1Builder`](#meta-using-smerfhttpv1builder)
 
 ### Handlers
 
